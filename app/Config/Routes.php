@@ -74,6 +74,7 @@ $routes->group('dashboard', ['filter' => 'session'], static function ($routes) {
     $routes->post('dokumen/portfolio/pdf', 'Member\DocumentController::uploadPortfolioPdf');
     $routes->post('dokumen/portfolio/external', 'Member\DocumentController::addExternalLink');
     $routes->post('dokumen/visibility/(:num)', 'Member\DocumentController::updateVisibility/$1');
+    $routes->get('dokumen/preview/(:num)', 'Member\DocumentController::preview/$1');
     $routes->get('dokumen/download/(:num)', 'Member\DocumentController::download/$1');
     $routes->post('dokumen/delete/(:num)', 'Member\DocumentController::delete/$1');
 

@@ -359,9 +359,16 @@ class InquiryController extends BaseController
         // Record access log
         $this->recordShareAccess((int) $share['id']);
 
-        return $this->response->download($filePath, null)
-            ->setFileName($doc['title'] . '.pdf')
-            ->inline();
+        $cleanTitle = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', $doc['title'] ?: 'Dokumen') . '.pdf';
+        $content    = file_get_contents($filePath);
+        $fileSize   = strlen($content);
+
+        return $this->response
+            ->setContentType('application/pdf')
+            ->setHeader('Content-Disposition', 'inline; filename="' . $cleanTitle . '"')
+            ->setHeader('Content-Length', (string) $fileSize)
+            ->setHeader('Cache-Control', 'private, max-age=3600')
+            ->setBody($content);
     }
 
     /**

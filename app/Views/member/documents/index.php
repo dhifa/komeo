@@ -114,8 +114,14 @@
                 </div>
 
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <!-- Preview -->
+                    <a href="<?= base_url('dashboard/dokumen/preview/' . $cv['id']) ?>" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-xl text-xs font-bold text-brand-700 bg-white border border-brand-200 hover:bg-brand-50 transition shadow-xs flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        Lihat
+                    </a>
+
                     <!-- Download -->
-                    <a href="<?= base_url('dashboard/dokumen/download/' . $cv['id']) ?>" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5">
+                    <a href="<?= base_url('dashboard/dokumen/download/' . $cv['id']) ?>" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         Unduh
                     </a>
@@ -201,10 +207,16 @@
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                 </a>
                             <?php else: ?>
-                                <a href="<?= base_url('dashboard/dokumen/download/' . $doc['id']) ?>" class="font-bold text-brand-600 hover:underline flex items-center gap-1">
-                                    <span>Unduh PDF</span>
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                </a>
+                                <div class="flex items-center gap-2">
+                                    <a href="<?= base_url('dashboard/dokumen/preview/' . $doc['id']) ?>" target="_blank" rel="noopener noreferrer" class="font-bold text-slate-600 hover:text-brand-600 hover:underline flex items-center gap-1">
+                                        <span>Lihat</span>
+                                    </a>
+                                    <span class="text-slate-300">•</span>
+                                    <a href="<?= base_url('dashboard/dokumen/download/' . $doc['id']) ?>" class="font-bold text-brand-600 hover:underline flex items-center gap-1">
+                                        <span>Unduh PDF</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    </a>
+                                </div>
                             <?php endif; ?>
 
                             <div class="flex items-center gap-1">

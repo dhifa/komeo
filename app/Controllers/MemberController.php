@@ -173,19 +173,41 @@ class MemberController extends BaseController
         }
 
         $storageDir = WRITEPATH . 'uploads/member-documents/';
-        $filePath   = $storageDir . $doc['file_path'];
+        $cleanRelPath = ltrim(str_replace(['member-documents/', 'member-documents\\'], '', $doc['file_path']), '/\\');
+        $filePath = $storageDir . $cleanRelPath;
+
+        if (! file_exists($filePath)) {
+            $filePath = WRITEPATH . 'uploads/' . ltrim($doc['file_path'], '/\\');
+        }
 
         if (empty($doc['file_path']) || ! file_exists($filePath)) {
             throw PageNotFoundException::forPageNotFound('Berkas fisik dokumen tidak ditemukan.');
         }
 
         $cleanTitle = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', $doc['title'] ?: 'Dokumen') . '.pdf';
+        $content    = file_get_contents($filePath);
+        $fileSize   = strlen($content);
+        header_remove('Pragma');
+        header_remove('Expires');
 
-        $download = $this->response->download($filePath, null)->setFileName($cleanTitle);
         if ($inline) {
-            $download->inline();
+            return $this->response
+                ->setContentType('application/pdf', '')
+                ->removeHeader('Pragma')
+                ->removeHeader('Expires')
+                ->setHeader('Content-Disposition', 'inline; filename="' . $cleanTitle . '"')
+                ->setHeader('Content-Length', (string) $fileSize)
+                ->setHeader('Accept-Ranges', 'bytes')
+                ->setHeader('Cache-Control', 'public, max-age=86400, must-revalidate')
+                ->setBody($content);
         }
 
-        return $download;
+        return $this->response
+            ->setContentType('application/pdf', '')
+            ->removeHeader('Pragma')
+            ->removeHeader('Expires')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $cleanTitle . '"')
+            ->setHeader('Content-Length', (string) $fileSize)
+            ->setBody($content);
     }
 }

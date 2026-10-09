@@ -247,6 +247,39 @@ class DocumentController extends BaseController
     }
 
     /**
+     * Preview Own Document inline
+     */
+    public function preview(int $id)
+    {
+        $userId = (int) auth()->id();
+        $doc = $this->docModel->where('id', $id)->where('user_id', $userId)->first();
+
+        if (! $doc || empty($doc['file_path'])) {
+            return $this->response->setStatusCode(404)->setBody('Dokumen tidak ditemukan.');
+        }
+
+        $fullPath = $this->storageDir . $doc['file_path'];
+        if (! file_exists($fullPath)) {
+            return $this->response->setStatusCode(404)->setBody('Berkas fisik tidak ditemukan.');
+        }
+
+        $cleanTitle = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', $doc['title'] ?: 'Dokumen') . '.pdf';
+        $content    = file_get_contents($fullPath);
+        header_remove('Pragma');
+        header_remove('Expires');
+
+        return $this->response
+            ->setContentType('application/pdf', '')
+            ->removeHeader('Pragma')
+            ->removeHeader('Expires')
+            ->setHeader('Content-Disposition', 'inline; filename="' . $cleanTitle . '"')
+            ->setHeader('Content-Length', (string) strlen($content))
+            ->setHeader('Accept-Ranges', 'bytes')
+            ->setHeader('Cache-Control', 'public, max-age=86400, must-revalidate')
+            ->setBody($content);
+    }
+
+    /**
      * Download Own Document
      */
     public function download(int $id)
@@ -263,7 +296,16 @@ class DocumentController extends BaseController
             return $this->response->setStatusCode(404)->setBody('Berkas fisik tidak ditemukan.');
         }
 
-        return $this->response->download($fullPath, null)->setFileName($doc['title'] . '.pdf');
+        $cleanTitle = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', $doc['title'] ?: 'Dokumen') . '.pdf';
+        $content    = file_get_contents($fullPath);
+
+        return $this->response
+            ->setContentType('application/pdf', '')
+            ->removeHeader('Pragma')
+            ->removeHeader('Expires')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $cleanTitle . '"')
+            ->setHeader('Content-Length', (string) strlen($content))
+            ->setBody($content);
     }
 
     /**
