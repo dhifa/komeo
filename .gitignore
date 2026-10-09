@@ -1,0 +1,122 @@
+#--------------------------------------------------------------------
+# KOMEO.ID - Comprehensive Git Ignore
+# Excludes sensitive data, credentials, uploaded member assets & runtimes.
+#--------------------------------------------------------------------
+
+# Operating Specific Junk Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+*~
+.directory
+.Trash-*
+
+# Environment & Sensitive Credentials
+.env
+.env.*
+!.env.example
+.vagrant
+Vagrantfile
+
+# Local Database Backups & Dumps
+*.sql
+*.sql.gz
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+
+# Dependencies
+vendor/
+node_modules/
+
+# Scratch & Temporary Developer Scripts
+/scratch/
+*.tmp
+*.temp
+
+# Runtime Logs & PHP Error Logs
+php_errors.log
+/writable/logs/*
+!/writable/logs/index.html
+
+# Runtime Caches & Debugbar
+/writable/cache/*
+!/writable/cache/index.html
+/writable/debugbar/*
+!/writable/debugbar/index.html
+
+# Temporary & Batch Export Files (e.g. KTA ZIP Archives)
+/writable/exports/*
+!/writable/exports/index.html
+
+# User Sessions
+/writable/session/*
+!/writable/session/index.html
+
+# Private Member Documents & Identity Verification Uploads
+/writable/uploads/*
+!/writable/uploads/index.html
+!/writable/uploads/member-documents/
+/writable/uploads/member-documents/*
+!/writable/uploads/member-documents/index.html
+!/writable/uploads/verifications/
+/writable/uploads/verifications/*
+!/writable/uploads/verifications/index.html
+
+# Public Runtime Uploads (Avatars, Portfolios, Logos, KTA Assets, Site Settings)
+/public/uploads/*
+!/public/uploads/index.html
+!/public/uploads/avatars/
+/public/uploads/avatars/*
+!/public/uploads/avatars/index.html
+!/public/uploads/company_logos/
+/public/uploads/company_logos/*
+!/public/uploads/company_logos/index.html
+!/public/uploads/kta/
+/public/uploads/kta/*
+!/public/uploads/kta/index.html
+!/public/uploads/portfolios/
+/public/uploads/portfolios/*
+!/public/uploads/portfolios/index.html
+!/public/uploads/settings/
+/public/uploads/settings/*
+!/public/uploads/settings/index.html
+
+# Tests & Code Coverage
+/tests/coverage*
+/phpunit
+/results/
+/phpunit.xml
+
+# IDE / Development Tools
+.idea/
+*.iml
+/nbproject/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/nbactions.xml
+/nb-configuration.xml
+/.nb-gradle/
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+.phpintel
+/api/
+.vscode/
+.php-version
+_modules/*
