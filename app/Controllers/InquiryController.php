@@ -56,12 +56,16 @@ class InquiryController extends BaseController
         }
 
         $profile = $this->profileModel->findByUserId((int) $user->id);
+        $currentUser = auth()->loggedIn() ? auth()->user() : null;
+        $currentProfile = $currentUser ? $this->profileModel->findByUserId((int) $currentUser->id) : null;
 
         return view('inquiry/contact_form', [
-            'title'      => 'Hubungi ' . ($profile->display_name ?? $profile->full_name ?? $username),
-            'targetUser' => $user,
-            'profile'    => $profile,
-            'membership' => $membership,
+            'title'          => 'Hubungi ' . ($profile->display_name ?? $profile->full_name ?? $username),
+            'targetUser'     => $user,
+            'profile'        => $profile,
+            'membership'     => $membership,
+            'currentUser'    => $currentUser,
+            'currentProfile' => $currentProfile,
         ]);
     }
 
@@ -77,21 +81,26 @@ class InquiryController extends BaseController
 
         // Honeypot check
         if (! empty($this->request->getPost('website_hp'))) {
-            return redirect()->to('/')->with('error', 'Terjadi kesalahan.');
+            return redirect()->to('/')->with('error', 'Terjadi kesalahan pengiriman.');
         }
 
         $rules = [
-            'client_name'         => 'required|min_length[3]|max_length[150]',
+            'client_name'         => 'required|min_length[2]|max_length[150]',
             'client_email'        => 'required|valid_email|max_length[255]',
             'inquiry_type'        => 'required|in_list[job_offer,cv_request,portfolio_request,collaboration,general]',
             'subject'             => 'required|min_length[3]|max_length[255]',
-            'initial_message'     => 'required|min_length[10]|max_length[5000]',
+            'initial_message'     => 'required|min_length[5]|max_length[5000]',
             'privacy_consent'     => 'required',
-            'client_whatsapp'     => 'permit_empty|min_length[8]|max_length[30]',
+            'client_whatsapp'     => 'permit_empty|min_length[6]|max_length[30]',
             'client_organization' => 'permit_empty|max_length[150]',
             'event_location'      => 'permit_empty|max_length[255]',
-            'event_date'          => 'permit_empty|valid_date[Y-m-d]',
         ];
+
+        // Only validate date if provided
+        $eventDateVal = trim((string) $this->request->getPost('event_date'));
+        if ($eventDateVal !== '') {
+            $rules['event_date'] = 'valid_date[Y-m-d]';
+        }
 
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -100,6 +109,11 @@ class InquiryController extends BaseController
         $clientEmail = strtolower(trim((string) $this->request->getPost('client_email')));
         $clientName  = trim((string) $this->request->getPost('client_name'));
 
+        // If the sender is already logged in as a KOMEO member, their identity & email are verified
+        $isLoggedIn = auth()->loggedIn();
+        $senderUser = $isLoggedIn ? auth()->user() : null;
+        $isAutoVerified = $isLoggedIn ? 1 : 0;
+
         // Generate split client access token
         $tokenData = MemberInquiryModel::generateClientAccessToken();
 
@@ -107,14 +121,14 @@ class InquiryController extends BaseController
             'target_user_id'               => (int) $user->id,
             'client_name'                  => $clientName,
             'client_email'                 => $clientEmail,
-            'client_whatsapp'              => $this->request->getPost('client_whatsapp'),
-            'client_organization'          => $this->request->getPost('client_organization'),
+            'client_whatsapp'              => $this->request->getPost('client_whatsapp') ?: null,
+            'client_organization'          => $this->request->getPost('client_organization') ?: null,
             'inquiry_type'                 => $this->request->getPost('inquiry_type'),
             'subject'                      => $this->request->getPost('subject'),
             'initial_message'              => $this->request->getPost('initial_message'),
-            'event_location'               => $this->request->getPost('event_location'),
-            'event_date'                   => $this->request->getPost('event_date') ?: null,
-            'is_email_verified'            => 0,
+            'event_location'               => $this->request->getPost('event_location') ?: null,
+            'event_date'                   => $eventDateVal ?: null,
+            'is_email_verified'            => $isAutoVerified,
             'status'                       => 'new',
             'client_access_token_selector' => $tokenData['selector'],
             'client_access_token_hash'     => $tokenData['hash'],
@@ -125,12 +139,34 @@ class InquiryController extends BaseController
         $this->messageModel->insert([
             'inquiry_id'  => $inquiryId,
             'sender_type' => 'client',
-            'sender_id'   => null,
+            'sender_id'   => $senderUser ? (int) $senderUser->id : null,
+            'sender_name' => $clientName,
             'message'     => $this->request->getPost('initial_message'),
             'created_at'  => date('Y-m-d H:i:s'),
         ]);
 
-        // Create email verification challenge
+        $profile = $this->profileModel->findByUserId((int) $user->id);
+        $memberName = $profile ? ($profile->full_name ?: $profile->display_name ?: $username) : $username;
+
+        AuditLogService::log($senderUser ? (int) $senderUser->id : null, 'inquiry.submit', 'member_inquiries', (int) $inquiryId, ['client_email' => $clientEmail]);
+
+        // If sender is already logged in, notify target member directly and redirect to conversation
+        if ($isAutoVerified) {
+            $memberDashboardUrl = site_url('dashboard/permintaan/' . $inquiryId);
+            NotificationEmailService::sendNewInquiryNotification(
+                $user->email,
+                $user->username,
+                $clientName,
+                (string) $this->request->getPost('subject'),
+                (string) $this->request->getPost('initial_message'),
+                $memberDashboardUrl
+            );
+
+            return redirect()->to(site_url('inquiry/conversation/' . $tokenData['selector']))
+                ->with('message', 'Pesan dan penawaran Anda berhasil dikirim langsung kepada ' . $memberName . '!');
+        }
+
+        // For non-logged-in guest clients: Create email verification challenge
         $challenge = VerificationChallengeService::createChallenge(
             'client_inquiry',
             (int) $inquiryId,
@@ -139,8 +175,6 @@ class InquiryController extends BaseController
         );
 
         $verifyUrl = site_url('inquiry/verify/' . $challenge['token']);
-        $profile = $this->profileModel->findByUserId((int) $user->id);
-        $memberName = $profile ? ($profile->full_name ?: $profile->display_name ?: $username) : $username;
 
         // Send email verification
         NotificationEmailService::sendInquiryVerificationEmail(
@@ -149,8 +183,6 @@ class InquiryController extends BaseController
             $memberName,
             $verifyUrl
         );
-
-        AuditLogService::log(null, 'inquiry.submit', 'member_inquiries', (int) $inquiryId, ['client_email' => $clientEmail]);
 
         return view('inquiry/success_notice', [
             'title'       => 'Permintaan Terkirim - Verifikasi Email',

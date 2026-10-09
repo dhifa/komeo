@@ -35,9 +35,13 @@
             </div>
 
             <?php if (! empty($verifyUrl) && ENVIRONMENT !== 'production'): ?>
-                <div class="p-3 rounded-xl bg-slate-100 border border-slate-200 text-left text-[11px] text-slate-600">
-                    <span class="font-bold block text-slate-800">Tautan Pengujian Lokal (Development):</span>
-                    <a href="<?= $verifyUrl ?>" class="text-brand-600 font-bold hover:underline break-all"><?= $verifyUrl ?></a>
+                <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left space-y-2">
+                    <span class="font-bold block text-xs text-amber-900">Mode Pengujian Lokal (XAMPP / Development):</span>
+                    <p class="text-[11px] text-amber-800">Karena email server lokal mungkin belum mengantarkan email ke inbox Anda, Anda dapat langsung mengklik tombol di bawah ini untuk memverifikasi dan meneruskan pesan ke inbox member:</p>
+                    <a href="<?= $verifyUrl ?>" class="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-xs">
+                        <span>Verifikasi Email Sekarang (Mode Lokal)</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
                 </div>
             <?php endif; ?>
 
