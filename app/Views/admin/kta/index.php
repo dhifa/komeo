@@ -216,7 +216,7 @@
                 </div>
                 <div class="flex items-center gap-1">
                     <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                        <a href="<?= site_url('admin/kta') ?>?<?= http_build_query(array_merge($this->request->getGet(), ['page' => $p])) ?>"
+                        <a href="<?= site_url('admin/kta') ?>?<?= http_build_query(array_merge(service('request')->getGet() ?? [], ['page' => $p])) ?>"
                            class="px-3 py-1.5 rounded-lg font-bold <?= $p === $currentPage ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' ?>">
                             <?= $p ?>
                         </a>

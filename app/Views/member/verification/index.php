@@ -39,7 +39,8 @@
     $vLevel    = $verification['verification_level'] ?? 'none';
     $vMethod   = $verification['verification_method'] ?? ($profile->isBusiness() ? 'pic_only' : 'ktp_selfie');
     $isBiz     = $profile->isBusiness();
-    $showForm  = in_array($vStatus, ['unverified', 'rejected', 'revoked'], true) || ($vLevel === 'pic_verified' && $this->request->getGet('upgrade') === 'nib');
+    $isUpgrade = ($upgrade ?? service('request')->getGet('upgrade')) === 'nib';
+    $showForm  = in_array($vStatus, ['unverified', 'rejected', 'revoked'], true) || ($vLevel === 'pic_verified' && $isUpgrade);
     ?>
 
     <!-- Status Highlight Banner -->

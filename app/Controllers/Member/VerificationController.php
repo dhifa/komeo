@@ -48,6 +48,7 @@ class VerificationController extends BaseController
             'membership'   => $membership,
             'verification' => $verification,
             'history'      => $history,
+            'upgrade'      => $this->request->getGet('upgrade'),
         ]);
     }
 
