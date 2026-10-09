@@ -62,7 +62,7 @@ class DocumentController extends BaseController
                 'label' => 'Berkas CV',
                 'rules' => 'uploaded[cv_file]|ext_in[cv_file,pdf]|max_size[cv_file,5120]|mime_in[cv_file,application/pdf]',
             ],
-            'visibility' => 'required|in_list[public,request_only,private]',
+            'visibility' => 'required|in_list[public,request_only]',
         ];
 
         if (! $this->validate($rules)) {
@@ -84,6 +84,7 @@ class DocumentController extends BaseController
             return redirect()->back()->with('error', 'Berkas bukan berkas PDF yang valid.');
         }
 
+        $fileSize = (int) $file->getSize();
         $filename = 'cv_' . $userId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.pdf';
         $file->move($this->storageDir, $filename);
 
@@ -105,7 +106,7 @@ class DocumentController extends BaseController
             'title'         => $title,
             'description'   => $this->request->getPost('description'),
             'file_path'     => $filename,
-            'file_size'     => $file->getSize(),
+            'file_size'     => $fileSize,
             'mime_type'     => 'application/pdf',
             'visibility'    => $visibility,
             'is_active'     => 1,
@@ -133,7 +134,7 @@ class DocumentController extends BaseController
                 'rules' => 'uploaded[portfolio_file]|ext_in[portfolio_file,pdf]|max_size[portfolio_file,10240]|mime_in[portfolio_file,application/pdf]',
             ],
             'title'      => 'required|min_length[3]|max_length[255]',
-            'visibility' => 'required|in_list[public,request_only,private]',
+            'visibility' => 'required|in_list[public,request_only]',
         ];
 
         if (! $this->validate($rules)) {
@@ -155,6 +156,7 @@ class DocumentController extends BaseController
             return redirect()->back()->with('error', 'Berkas yang diunggah bukan PDF yang valid.');
         }
 
+        $fileSize = (int) $file->getSize();
         $filename = 'port_' . $userId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.pdf';
         $file->move($this->storageDir, $filename);
 
@@ -164,7 +166,7 @@ class DocumentController extends BaseController
             'title'         => $this->request->getPost('title'),
             'description'   => $this->request->getPost('description'),
             'file_path'     => $filename,
-            'file_size'     => $file->getSize(),
+            'file_size'     => $fileSize,
             'mime_type'     => 'application/pdf',
             'visibility'    => $this->request->getPost('visibility'),
             'is_active'     => 1,
@@ -184,7 +186,7 @@ class DocumentController extends BaseController
         $rules = [
             'title'        => 'required|min_length[3]|max_length[255]',
             'external_url' => 'required|valid_url_strict[https]',
-            'visibility'   => 'required|in_list[public,request_only,private]',
+            'visibility'   => 'required|in_list[public,request_only]',
         ];
 
         if (! $this->validate($rules)) {
@@ -234,7 +236,7 @@ class DocumentController extends BaseController
         }
 
         $visibility = $this->request->getPost('visibility');
-        if (! in_array($visibility, ['public', 'request_only', 'private'])) {
+        if (! in_array($visibility, ['public', 'request_only'])) {
             return redirect()->back()->with('error', 'Opsi visibilitas tidak valid.');
         }
 

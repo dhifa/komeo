@@ -341,47 +341,94 @@
                     </div>
 
                     <div class="space-y-4">
-                        <!-- Public CV (if available) -->
-                        <?php if (! empty($publicCv)): ?>
-                            <div class="flex items-center justify-between p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                                <div class="flex items-center gap-3.5">
-                                    <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                                        PDF
+                        <!-- CV Section -->
+                        <?php if (! empty($activeCv)): ?>
+                            <?php if ($activeCv['visibility'] === 'public'): ?>
+                                <!-- Public CV: Direct View & Download -->
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 gap-3.5">
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <div class="w-11 h-11 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-xs shadow-xs shrink-0">
+                                            PDF
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate"><?= esc($activeCv['title']) ?></h4>
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shrink-0">Publik</span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500">Curriculum Vitae Resmi • Terbuka untuk diunduh langsung</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 class="text-xs sm:text-sm font-bold text-slate-900"><?= esc($publicCv['title']) ?></h4>
-                                        <p class="text-[11px] text-slate-500">Curriculum Vitae Resmi • Terbuka untuk Umum</p>
+                                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                        <a href="<?= base_url('member/dokumen/' . $activeCv['id']) ?>" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 text-xs font-bold text-brand-700 bg-white hover:bg-brand-50 border border-brand-200 rounded-xl transition shadow-xs flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            <span>Lihat CV</span>
+                                        </a>
+                                        <a href="<?= base_url('member/dokumen/' . $activeCv['id'] . '/unduh') ?>" class="px-3.5 py-1.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition shadow-xs flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            <span>Unduh CV</span>
+                                        </a>
                                     </div>
                                 </div>
-                                <a href="<?= base_url('member/' . esc($profile->username) . '/hubungi?purpose=cv_request') ?>" class="px-3.5 py-1.5 text-xs font-bold text-brand-700 bg-white hover:bg-brand-50 border border-brand-200 rounded-xl transition shadow-xs">
-                                    Minta / Akses CV
-                                </a>
-                            </div>
+                            <?php else: ?>
+                                <!-- Request-only CV: Form Inquiry -->
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 gap-3.5">
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <div class="w-11 h-11 rounded-xl bg-amber-600 text-white flex items-center justify-center font-extrabold text-xs shadow-xs shrink-0">
+                                            PDF
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate"><?= esc($activeCv['title']) ?></h4>
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shrink-0">Request Akses</span>
+                                            </div>
+                                            <p class="text-[11px] text-amber-800">Akses terbatas • Memerlukan persetujuan dari member</p>
+                                        </div>
+                                    </div>
+                                    <a href="<?= base_url('member/' . esc($profile->username) . '/hubungi?purpose=cv_request') ?>" class="px-3.5 py-1.5 text-xs font-bold text-amber-900 bg-white hover:bg-amber-100 border border-amber-300 rounded-xl transition shadow-xs shrink-0 self-end sm:self-auto flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                        <span>Minta Akses CV</span>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
 
-                        <!-- Public Portfolios & External Links -->
-                        <?php if (! empty($publicDocs)): ?>
+                        <!-- Portfolios (PDF & External Links) -->
+                        <?php if (! empty($activeDocs)): ?>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-                                <?php foreach ($publicDocs as $pDoc): ?>
-                                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between hover:bg-white hover:shadow-sm transition">
+                                <?php foreach ($activeDocs as $pDoc): ?>
+                                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between hover:bg-white hover:shadow-xs transition">
                                         <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
                                             <div class="w-8 h-8 rounded-lg <?= $pDoc['document_type'] === 'portfolio_external' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700' ?> flex items-center justify-center text-xs font-bold shrink-0">
                                                 <?= $pDoc['document_type'] === 'portfolio_external' ? 'EXT' : 'PDF' ?>
                                             </div>
                                             <div class="truncate">
                                                 <h5 class="text-xs font-bold text-slate-800 truncate"><?= esc($pDoc['title']) ?></h5>
-                                                <span class="text-[10px] text-slate-400 font-medium"><?= esc($pDoc['external_platform'] ?: 'Dokumen Portofolio') ?></span>
+                                                <span class="text-[10px] text-slate-400 font-medium block truncate">
+                                                    <?= esc($pDoc['external_platform'] ?: 'Berkas Portofolio') ?> • <?= $pDoc['visibility'] === 'public' ? 'Publik' : 'Request Akses' ?>
+                                                </span>
                                             </div>
                                         </div>
-                                        <?php if ($pDoc['document_type'] === 'portfolio_external' && ! empty($pDoc['external_url'])): ?>
-                                            <a href="<?= esc($pDoc['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 text-[11px] font-bold text-brand-600 hover:text-brand-800 hover:underline shrink-0">
-                                                Buka
-                                            </a>
-                                        <?php else: ?>
-                                            <a href="<?= base_url('member/' . esc($profile->username) . '/hubungi?purpose=portfolio_request') ?>" class="px-2.5 py-1 text-[11px] font-bold text-brand-600 hover:text-brand-800 hover:underline shrink-0">
-                                                Minta
-                                            </a>
-                                        <?php endif; ?>
+
+                                        <div class="shrink-0 flex items-center gap-1.5">
+                                            <?php if ($pDoc['visibility'] === 'public'): ?>
+                                                <?php if ($pDoc['document_type'] === 'portfolio_external' && ! empty($pDoc['external_url'])): ?>
+                                                    <a href="<?= esc($pDoc['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 text-[11px] font-bold text-brand-600 hover:text-brand-800 hover:underline">
+                                                        Buka
+                                                    </a>
+                                                <?php else: ?>
+                                                    <a href="<?= base_url('member/dokumen/' . $pDoc['id']) ?>" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 text-[11px] font-bold text-brand-600 hover:text-brand-800 hover:underline">
+                                                        Lihat
+                                                    </a>
+                                                    <a href="<?= base_url('member/dokumen/' . $pDoc['id'] . '/unduh') ?>" class="px-2.5 py-1 text-[11px] font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg">
+                                                        Unduh
+                                                    </a>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <a href="<?= base_url('member/' . esc($profile->username) . '/hubungi?purpose=portfolio_request') ?>" class="px-2.5 py-1 text-[11px] font-bold text-amber-700 hover:text-amber-900 hover:underline">
+                                                    Minta Akses
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -390,11 +437,11 @@
                         <!-- Request CV & Portfolio Notice Box -->
                         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <div class="text-xs text-slate-600">
-                                <span class="font-bold text-slate-800 block">Butuh CV Lengkap atau Dokumen Kerja Sama?</span>
-                                Ajukan permintaan resmi langsung kepada member untuk mendapatkan tautan aman dokumen terverifikasi.
+                                <span class="font-bold text-slate-800 block">Butuh Dokumen Kerja Sama atau Informasi Lebih Lanjut?</span>
+                                Ajukan penawaran pekerjaan, permohonan rate card, atau kolaborasi langsung kepada member melalui KOMEO Connect.
                             </div>
-                            <a href="<?= base_url('member/' . esc($profile->username) . '/hubungi?purpose=cv_request') ?>" class="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition shadow-xs whitespace-nowrap">
-                                Ajukan Permintaan
+                            <a href="<?= base_url('member/' . esc($profile->username) . '/hubungi') ?>" class="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition shadow-xs whitespace-nowrap">
+                                Hubungi Member
                             </a>
                         </div>
                     </div>

@@ -17,6 +17,35 @@
         </div>
     </div>
 
+    <!-- Flash Alerts -->
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-2.5 shadow-xs">
+            <svg class="w-5 h-5 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <span class="font-medium"><?= esc(session()->getFlashdata('error')) ?></span>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-2.5 shadow-xs">
+            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span class="font-medium"><?= esc(session()->getFlashdata('success')) ?></span>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('errors')): ?>
+        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm space-y-1 shadow-xs">
+            <div class="font-bold flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                Periksa isian formulir:
+            </div>
+            <ul class="list-disc list-inside space-y-0.5 ml-1">
+                <?php foreach (session()->getFlashdata('errors') as $err): ?>
+                    <li><?= esc($err) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
+
     <!-- Section 1: Curriculum Vitae (CV) Management -->
     <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-6">
         <div class="flex items-center justify-between">
@@ -29,8 +58,8 @@
             </div>
             
             <?php if ($cv): ?>
-                <span class="px-3 py-1 rounded-full text-xs font-bold <?= $cv['visibility'] === 'public' ? 'bg-emerald-100 text-emerald-800' : ($cv['visibility'] === 'request_only' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700') ?>">
-                    Visibilitas: <?= strtoupper($cv['visibility']) ?>
+                <span class="px-3 py-1 rounded-full text-xs font-bold <?= $cv['visibility'] === 'public' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' ?>">
+                    Visibilitas: <?= $cv['visibility'] === 'public' ? 'PUBLIK' : 'REQUEST AKSES' ?>
                 </span>
             <?php endif; ?>
         </div>
@@ -44,7 +73,7 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                     </div>
                     <h3 class="text-sm font-bold text-slate-800">Unggah Berkas CV Anda</h3>
-                    <p class="text-xs text-slate-500">Pilih berkas PDF maksimal 5 MB untuk disimpan secara aman di server privat.</p>
+                    <p class="text-xs text-slate-500">Pilih berkas PDF maksimal 5 MB untuk disimpan secara aman di profil Anda.</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -57,9 +86,8 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-700">Privasi & Visibilitas <span class="text-rose-500">*</span></label>
                         <select name="visibility" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs bg-white outline-none">
-                            <option value="private">PRIVATE (Hanya saya & dibagikan via permintaan)</option>
-                            <option value="request_only">REQUEST ONLY (Tampil opsi permintaan di profil)</option>
-                            <option value="public">PUBLIC (Dapat diakses langsung di profil publik)</option>
+                            <option value="public">Publik (Bisa dilihat & diunduh langsung oleh siapa saja)</option>
+                            <option value="request_only">Request Akses (Tamu harus meminta izin akses terlebih dahulu)</option>
                         </select>
                     </div>
                 </div>
@@ -96,9 +124,8 @@
                     <form action="<?= base_url('dashboard/dokumen/visibility/' . $cv['id']) ?>" method="POST" class="inline">
                         <?= csrf_field() ?>
                         <select name="visibility" onchange="this.form.submit()" class="px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white font-bold text-slate-700 outline-none">
-                            <option value="private" <?= $cv['visibility'] === 'private' ? 'selected' : '' ?>>PRIVATE</option>
-                            <option value="request_only" <?= $cv['visibility'] === 'request_only' ? 'selected' : '' ?>>REQUEST ONLY</option>
-                            <option value="public" <?= $cv['visibility'] === 'public' ? 'selected' : '' ?>>PUBLIC</option>
+                            <option value="public" <?= $cv['visibility'] === 'public' ? 'selected' : '' ?>>Publik</option>
+                            <option value="request_only" <?= $cv['visibility'] === 'request_only' ? 'selected' : '' ?>>Request Akses</option>
                         </select>
                     </form>
 
@@ -158,8 +185,8 @@
                                 </div>
                             </div>
 
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 <?= $doc['visibility'] === 'public' ? 'bg-emerald-100 text-emerald-800' : ($doc['visibility'] === 'request_only' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700') ?>">
-                                <?= esc($doc['visibility']) ?>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 <?= $doc['visibility'] === 'public' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' ?>">
+                                <?= $doc['visibility'] === 'public' ? 'PUBLIK' : 'REQUEST AKSES' ?>
                             </span>
                         </div>
 
@@ -184,9 +211,8 @@
                                 <form action="<?= base_url('dashboard/dokumen/visibility/' . $doc['id']) ?>" method="POST" class="inline">
                                     <?= csrf_field() ?>
                                     <select name="visibility" onchange="this.form.submit()" class="px-2 py-1 rounded-lg border border-slate-200 text-[11px] bg-white font-semibold text-slate-600 outline-none">
-                                        <option value="private" <?= $doc['visibility'] === 'private' ? 'selected' : '' ?>>PRIVATE</option>
-                                        <option value="request_only" <?= $doc['visibility'] === 'request_only' ? 'selected' : '' ?>>REQUEST</option>
-                                        <option value="public" <?= $doc['visibility'] === 'public' ? 'selected' : '' ?>>PUBLIC</option>
+                                        <option value="public" <?= $doc['visibility'] === 'public' ? 'selected' : '' ?>>Publik</option>
+                                        <option value="request_only" <?= $doc['visibility'] === 'request_only' ? 'selected' : '' ?>>Request Akses</option>
                                     </select>
                                 </form>
 
@@ -236,11 +262,10 @@
             </div>
 
             <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-700">Visibilitas</label>
+                <label class="block text-xs font-bold text-slate-700">Visibilitas <span class="text-rose-500">*</span></label>
                 <select name="visibility" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs bg-white outline-none">
-                    <option value="private">PRIVATE (Hanya dibagikan via permintaan)</option>
-                    <option value="request_only">REQUEST ONLY</option>
-                    <option value="public">PUBLIC (Tampil di profil publik)</option>
+                    <option value="public">Publik (Bisa dilihat & diunduh langsung di profil member)</option>
+                    <option value="request_only">Request Akses (Tamu harus meminta izin akses terlebih dahulu)</option>
                 </select>
             </div>
 
@@ -282,11 +307,10 @@
             </div>
 
             <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-700">Visibilitas</label>
+                <label class="block text-xs font-bold text-slate-700">Visibilitas <span class="text-rose-500">*</span></label>
                 <select name="visibility" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs bg-white outline-none">
-                    <option value="public">PUBLIC (Tampil di profil publik)</option>
-                    <option value="request_only">REQUEST ONLY</option>
-                    <option value="private">PRIVATE</option>
+                    <option value="public">Publik (Bisa dibuka langsung di profil member)</option>
+                    <option value="request_only">Request Akses (Tamu harus meminta izin akses terlebih dahulu)</option>
                 </select>
             </div>
 

@@ -10,6 +10,8 @@ $routes->get('member', 'DirectoryController::member');
 $routes->get('cari-vendor', 'DirectoryController::vendor');
 $routes->get('cari-crew', 'DirectoryController::crew');
 $routes->get('kategori/(:segment)', 'DirectoryController::category/$1');
+$routes->get('member/dokumen/(:num)/unduh', 'MemberController::downloadPublicDocument/$1');
+$routes->get('member/dokumen/(:num)', 'MemberController::viewPublicDocument/$1');
 $routes->get('member/(:segment)', 'MemberController::publicProfile/$1');
 $routes->get('verifikasi/(:segment)', 'VerificationController::verify/$1');
 

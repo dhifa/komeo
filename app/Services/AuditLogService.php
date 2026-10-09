@@ -7,25 +7,39 @@ class AuditLogService
     /**
      * Log an action to audit_logs
      *
-     * @param string $action
-     * @param string|null $entityType
-     * @param int|null $entityId
-     * @param array|null $details
-     * @param int|null $userId
-     * @return bool
+     * Supports both caller conventions safely:
+     * 1. log(?int $userId, string $action, ?string $entityType = null, ?int $entityId = null, ?array $details = null)
+     * 2. log(string $action, ?string $entityType = null, ?int $entityId = null, ?array $details = null, ?int $userId = null)
      */
     public static function log(
-        string $action,
-        ?string $entityType = null,
-        ?int $entityId = null,
-        ?array $details = null,
-        ?int $userId = null
+        $arg1,
+        $arg2 = null,
+        $arg3 = null,
+        $arg4 = null,
+        $arg5 = null
     ): bool {
         try {
             $db = \Config\Database::connect();
             $request = service('request');
 
-            $uid = $userId;
+            // Detect signature:
+            // Standard across KOMEO controllers: log($userId, $action, $entityType, $entityId, $details)
+            if (is_string($arg1) && ! is_numeric($arg1) && (is_null($arg3) || is_int($arg3)) && (is_null($arg4) || is_array($arg4))) {
+                // Signature: (action, entityType, entityId, details, userId)
+                $action     = (string) $arg1;
+                $entityType = $arg2 !== null ? (string) $arg2 : null;
+                $entityId   = $arg3 !== null ? (int) $arg3 : null;
+                $details    = is_array($arg4) ? $arg4 : null;
+                $uid        = $arg5 !== null ? (int) $arg5 : null;
+            } else {
+                // Signature: (userId, action, entityType, entityId, details)
+                $uid        = $arg1 !== null ? (int) $arg1 : null;
+                $action     = (string) $arg2;
+                $entityType = $arg3 !== null ? (string) $arg3 : null;
+                $entityId   = $arg4 !== null ? (int) $arg4 : null;
+                $details    = is_array($arg5) ? $arg5 : null;
+            }
+
             if ($uid === null && function_exists('auth') && auth()->loggedIn()) {
                 $uid = (int) auth()->id();
             }

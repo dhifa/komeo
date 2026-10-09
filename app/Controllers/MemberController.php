@@ -54,23 +54,22 @@ class MemberController extends BaseController
 
         // Fetch Phase 5.6 Professional Documents (CV and PDF/External Portfolios)
         $docModel = model(\App\Models\MemberDocumentModel::class);
-        $publicCv = $docModel->where('user_id', $profile->user_id)
+        $activeCv = $docModel->where('user_id', $profile->user_id)
             ->where('document_type', 'cv')
-            ->where('visibility', 'public')
             ->where('is_active', 1)
             ->first();
 
-        $hasAnyCv = $docModel->where('user_id', $profile->user_id)
-            ->where('document_type', 'cv')
-            ->where('is_active', 1)
-            ->countAllResults() > 0;
+        $publicCv = ($activeCv && $activeCv['visibility'] === 'public') ? $activeCv : null;
+        $hasAnyCv = $activeCv !== null;
 
-        $publicDocs = $docModel->where('user_id', $profile->user_id)
+        $activeDocs = $docModel->where('user_id', $profile->user_id)
             ->whereIn('document_type', ['portfolio_pdf', 'portfolio_external'])
-            ->where('visibility', 'public')
+            ->whereIn('visibility', ['public', 'request_only'])
             ->where('is_active', 1)
             ->orderBy('id', 'DESC')
             ->findAll();
+
+        $publicDocs = array_filter($activeDocs, static fn($d) => $d['visibility'] === 'public');
 
         $previewNotice = null;
         if ($isPrivate && ($isOwner || $isAdmin)) {
@@ -123,6 +122,8 @@ class MemberController extends BaseController
             'category'        => $category,
             'specializations' => $specializations,
             'portfolios'      => $portfolios,
+            'activeCv'        => $activeCv,
+            'activeDocs'      => $activeDocs,
             'publicCv'        => $publicCv,
             'hasAnyCv'        => $hasAnyCv,
             'publicDocs'      => $publicDocs,
@@ -133,5 +134,58 @@ class MemberController extends BaseController
             'memberBadges'    => $memberBadges,
             'verification'    => $verification,
         ]);
+    }
+
+    /**
+     * View Public Document inline (CV or Portfolio PDF)
+     */
+    public function viewPublicDocument(int $id)
+    {
+        return $this->servePublicDocument($id, true);
+    }
+
+    /**
+     * Force Download Public Document (CV or Portfolio PDF)
+     */
+    public function downloadPublicDocument(int $id)
+    {
+        return $this->servePublicDocument($id, false);
+    }
+
+    /**
+     * Helper to serve a public document securely
+     */
+    protected function servePublicDocument(int $id, bool $inline = true)
+    {
+        $docModel = model(\App\Models\MemberDocumentModel::class);
+        $doc = $docModel->where('id', $id)
+            ->where('is_active', 1)
+            ->where('visibility', 'public')
+            ->first();
+
+        if (! $doc) {
+            throw PageNotFoundException::forPageNotFound('Dokumen tidak ditemukan atau tidak dipublikasikan.');
+        }
+
+        // If external URL, redirect directly
+        if ($doc['document_type'] === 'portfolio_external' && ! empty($doc['external_url'])) {
+            return redirect()->to($doc['external_url']);
+        }
+
+        $storageDir = WRITEPATH . 'uploads/member-documents/';
+        $filePath   = $storageDir . $doc['file_path'];
+
+        if (empty($doc['file_path']) || ! file_exists($filePath)) {
+            throw PageNotFoundException::forPageNotFound('Berkas fisik dokumen tidak ditemukan.');
+        }
+
+        $cleanTitle = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', $doc['title'] ?: 'Dokumen') . '.pdf';
+
+        $download = $this->response->download($filePath, null)->setFileName($cleanTitle);
+        if ($inline) {
+            $download->inline();
+        }
+
+        return $download;
     }
 }
