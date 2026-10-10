@@ -187,9 +187,20 @@
                         <?php endif; ?>
                     </div>
 
+                    <!-- Custom Member Roles (Phase 6.3) -->
+                    <?php if (! empty($memberRoles)): ?>
+                        <div class="flex flex-wrap items-center gap-2 pt-1" title="Peran Keanggotaan Komunitas">
+                            <span class="text-2xs font-bold uppercase tracking-wider text-slate-400 mr-1">Role:</span>
+                            <?php foreach ($memberRoles as $mr): ?>
+                                <?= komeo_render_member_role($mr, 'sm', true) ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Custom Badges Cluster (Phase 5 Extension) -->
                     <?php if (! empty($memberBadges)): ?>
                         <div class="flex flex-wrap items-center gap-2 pt-1" title="Badge Penghargaan & Kualifikasi Komunitas">
+                            <span class="text-2xs font-bold uppercase tracking-wider text-slate-400 mr-1">Badge:</span>
                             <?php foreach ($memberBadges as $mb): ?>
                                 <?= komeo_render_badge($mb, 'sm', true) ?>
                             <?php endforeach; ?>

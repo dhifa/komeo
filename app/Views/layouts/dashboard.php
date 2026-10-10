@@ -40,6 +40,23 @@
     <?= brand_colors_css() ?>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .custom-sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8;
+        }
     </style>
 </head>
 <body class="min-h-full flex antialiased bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
@@ -52,10 +69,9 @@
     ?>
 
     <!-- Sidebar Navigation -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200/80 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out">
-        <div>
-            <!-- Sidebar Brand Header -->
-            <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200/80 flex flex-col h-screen max-h-screen overflow-hidden transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out">
+        <!-- Sidebar Brand Header (Pinned Top) -->
+        <div class="h-20 shrink-0 flex items-center justify-between px-6 border-b border-slate-100 bg-white">
                 <a href="<?= base_url() ?>" class="flex items-center gap-3 group">
                     <?php if ($headerLogo = site_setting('App.logo_header')): ?>
                         <img src="<?= base_url(esc($headerLogo)) ?>" alt="KOMEO.ID" class="h-9 w-auto object-contain max-w-[170px]">
@@ -76,8 +92,10 @@
                 </button>
             </div>
 
-            <!-- Member Identity Summary Card -->
-            <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+            <!-- Scrollable Middle Body (Member Sidebar) -->
+            <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-sidebar-scroll">
+                <!-- Member Identity Summary Card -->
+                <div class="p-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="flex items-center gap-3">
                     <?php 
                         $avatarUrl = ! empty($profile) && method_exists($profile, 'getAvatarUrl') 
@@ -152,6 +170,17 @@
                     <span>KTA Digital</span>
                 </a>
 
+                <!-- 9. Live Transaksi KOMEO (Phase 6.3 Module A) -->
+                <a href="<?= base_url('dashboard/transaksi') ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors <?= str_starts_with($currentUri, 'dashboard/transaksi') ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' ?>">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 <?= str_starts_with($currentUri, 'dashboard/transaksi') ? 'text-brand-600' : 'text-emerald-500' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        <span>Live Transaksi</span>
+                    </div>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800">
+                        LIVE
+                    </span>
+                </a>
+
                 <?php if (auth()->user()->inGroup('admin', 'superadmin')): ?>
                     <div class="pt-3 mt-3 border-t border-slate-100">
                         <a href="<?= base_url('admin') ?>" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 transition-colors">
@@ -163,8 +192,8 @@
             </nav>
         </div>
 
-        <!-- Sidebar Footer: Logout -->
-        <div class="p-4 border-t border-slate-100">
+        <!-- Sidebar Footer: Logout (Pinned Bottom) -->
+        <div class="p-4 border-t border-slate-100 shrink-0 bg-white">
             <a href="<?= base_url('logout') ?>" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
                 <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 <span>Keluar Akun</span>

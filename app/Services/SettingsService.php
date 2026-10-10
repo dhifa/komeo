@@ -121,6 +121,15 @@ class SettingsService
         'Membership.enable_whatsapp'         => '1',
         'Membership.enable_email'            => '1',
 
+        // 11. Pengaturan Live Transaksi & Privasi Finansial (Phase 6.3)
+        'Transaction.monetary_visibility_policy' => 'hide_all', // 'hide_all' or 'per_transaction'
+        'Transaction.live_refresh_interval'      => '60', // in seconds
+        'Transaction.enable_member_live_ticker'  => '1',
+
+        // 12. Pengaturan Custom Member Role (Phase 6.3)
+        'MemberRole.default_role_key'            => 'anggota-reguler',
+        'MemberRole.auto_assign_on_active'       => '1',
+
         // 8. Pengaturan KTA (Kartu Tanda Anggota)
         'Kta.card_title'               => 'KARTU TANDA ANGGOTA',
         'Kta.front_bg_color'           => '#0F172A', // Dark Navy

@@ -320,3 +320,71 @@ if (! function_exists('komeo_detect_mime_type')) {
     }
 }
 
+if (! function_exists('komeo_render_member_role')) {
+    /**
+     * Render Custom Member Role badge pill HTML
+     */
+    function komeo_render_member_role(array|object $role, string $size = 'sm', bool $showTooltip = true): string
+    {
+        $roleArr = (array) $role;
+        $name    = esc($roleArr['name'] ?? $roleArr['role_name'] ?? '');
+        $desc    = esc($roleArr['description'] ?? '');
+        $bg      = esc($roleArr['background_color'] ?? '#4F46E5');
+        $color   = esc($roleArr['text_color'] ?? '#FFFFFF');
+        $isPrimary = ! empty($roleArr['is_primary']);
+
+        $padding = match ($size) {
+            'xs'    => 'px-2 py-0.5 text-[10px]',
+            'lg'    => 'px-3.5 py-1.5 text-sm',
+            default => 'px-2.5 py-0.5 text-xs',
+        };
+
+        $titleAttr = $showTooltip && ! empty($desc) ? ' title="' . $desc . '"' : '';
+
+        // Distinct rounded pill with border accent for primary role
+        $border = $isPrimary ? ' ring-1 ring-white/30 font-extrabold' : ' font-bold';
+
+        return '<span class="inline-flex items-center gap-1.5 rounded-lg shadow-2xs ' . $padding . $border . '" style="background-color: ' . $bg . '; color: ' . $color . ';"' . $titleAttr . '>'
+             . '<span>' . $name . '</span></span>';
+    }
+}
+
+if (! function_exists('komeo_get_user_roles')) {
+    /**
+     * Get active custom roles for a member
+     */
+    function komeo_get_user_roles(int $userId, bool $publicOnly = false): array
+    {
+        static $cache = [];
+        $key = "{$userId}_" . ($publicOnly ? 'pub' : 'all');
+        if (! array_key_exists($key, $cache)) {
+            try {
+                $assignmentModel = model(\App\Models\MemberRoleAssignmentModel::class);
+                $roles = $assignmentModel->getActiveRolesForUser($userId);
+                if ($publicOnly) {
+                    $roles = array_values(array_filter($roles, fn($r) => ! empty($r['is_public'])));
+                }
+                $cache[$key] = $roles;
+            } catch (\Throwable $e) {
+                $cache[$key] = [];
+            }
+        }
+        return $cache[$key];
+    }
+}
+
+if (! function_exists('komeo_format_rupiah')) {
+    /**
+     * Format number as Indonesian Rupiah currency string
+     */
+    function komeo_format_rupiah(float|int|string|null $amount, bool $withPrefix = true): string
+    {
+        if ($amount === null || $amount === '') {
+            return '-';
+        }
+        $num = (float) $amount;
+        $formatted = number_format($num, 0, ',', '.');
+        return $withPrefix ? 'Rp ' . $formatted : $formatted;
+    }
+}
+

@@ -105,6 +105,13 @@ class MemberController extends BaseController
             $memberBadges     = $memberBadgeModel->getActiveBadgesForUser((int) $profile->user_id);
         }
 
+        // Phase 6.3: Custom Member Roles (only public roles if active)
+        $memberRoles = [];
+        if ($isActive) {
+            $memberRoleAssignmentModel = model(\App\Models\MemberRoleAssignmentModel::class);
+            $memberRoles               = $memberRoleAssignmentModel->getUserPublicRoles((int) $profile->user_id);
+        }
+
         // Identity & Business Verification
         $verificationModel = model(\App\Models\MemberVerificationModel::class);
         $verification      = $verificationModel->getByUserId((int) $profile->user_id);
@@ -132,6 +139,7 @@ class MemberController extends BaseController
             'isActive'        => $isActive,
             'previewNotice'   => $previewNotice,
             'memberBadges'    => $memberBadges,
+            'memberRoles'     => $memberRoles,
             'verification'    => $verification,
         ]);
     }

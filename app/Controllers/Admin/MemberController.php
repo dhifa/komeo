@@ -117,6 +117,12 @@ class MemberController extends BaseController
         $verificationModel = model(\App\Models\MemberVerificationModel::class);
         $verification      = $verificationModel->getByUserId((int) $member['user_id']);
 
+        // Phase 6.3: Custom Member Roles
+        $roleModel       = model(\App\Models\MemberRoleModel::class);
+        $roleAssignModel = model(\App\Models\MemberRoleAssignmentModel::class);
+        $availableRoles  = $roleModel->getActiveRoles();
+        $userRoles       = $roleAssignModel->getActiveRolesForUser((int) $member['user_id']);
+
         return view('admin/members/show', [
             'title'             => 'Detail Member: ' . ($member['full_name'] ?: $member['account_username']) . ' - KOMEO.ID',
             'member'            => $member,
@@ -130,6 +136,8 @@ class MemberController extends BaseController
             'memberBadges'      => $memberBadges,
             'activationRequest' => $activationRequest,
             'verification'      => $verification,
+            'availableRoles'    => $availableRoles,
+            'userRoles'         => $userRoles,
         ]);
     }
 
@@ -153,6 +161,10 @@ class MemberController extends BaseController
             if ($membership) {
                 $actModel = model(MembershipActivationRequestModel::class);
                 $actModel->recordApproval((int) $membership->user_id, (int) $admin->id, $reason);
+
+                // Phase 6.3: Idempotently assign default community role upon activation
+                $roleAssignModel = model(\App\Models\MemberRoleAssignmentModel::class);
+                $roleAssignModel->ensureDefaultRole((int) $membership->user_id, (int) $admin->id);
             }
             return redirect()->back()->with('message', $result['message']);
         }
@@ -450,6 +462,56 @@ class MemberController extends BaseController
     }
 
     /**
+     * Phase 6.3: Assign custom member role to member
+     */
+    public function assignRole(int $userId): RedirectResponse
+    {
+        $admin = auth()->user();
+        if (! $admin || ! $admin->inGroup('admin', 'superadmin')) {
+            return redirect()->to('dashboard')->with('error', 'Akses ditolak.');
+        }
+
+        $roleId       = (int) $this->request->getPost('role_id');
+        $isPrimary    = $this->request->getPost('is_primary') ? true : false;
+        $expiresAt    = $this->request->getPost('expires_at') ? (string) $this->request->getPost('expires_at') : null;
+        $internalNote = $this->request->getPost('internal_note') ? (string) $this->request->getPost('internal_note') : null;
+
+        if ($roleId <= 0) {
+            return redirect()->back()->with('error', 'Silakan pilih role komunitas yang valid.');
+        }
+
+        $assignmentModel = model(\App\Models\MemberRoleAssignmentModel::class);
+        $success = $assignmentModel->assignRole($userId, $roleId, $isPrimary, (int) $admin->id, $expiresAt, $internalNote);
+
+        if ($success) {
+            return redirect()->back()->with('message', 'Role komunitas berhasil ditugaskan kepada anggota.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal menugaskan role komunitas.');
+    }
+
+    /**
+     * Phase 6.3: Revoke custom member role from member
+     */
+    public function revokeRole(int $assignmentId): RedirectResponse
+    {
+        $admin = auth()->user();
+        if (! $admin || ! $admin->inGroup('admin', 'superadmin')) {
+            return redirect()->to('dashboard')->with('error', 'Akses ditolak.');
+        }
+
+        $reason = trim((string) $this->request->getPost('reason'));
+        $assignmentModel = model(\App\Models\MemberRoleAssignmentModel::class);
+        $success = $assignmentModel->revokeRole($assignmentId, (int) $admin->id, $reason ?: null);
+
+        if ($success) {
+            return redirect()->back()->with('message', 'Penugasan role komunitas berhasil dicabut.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal mencabut role komunitas.');
+    }
+
+    /**
      * Phase 5 Extension: Record contact confirmation from applicant
      */
     public function confirmContact(int $userId): RedirectResponse
@@ -501,6 +563,11 @@ class MemberController extends BaseController
 
         if ($result['success']) {
             $activationModel->recordApproval((int) $membership->user_id, (int) $admin->id, $reason);
+
+            // Phase 6.3: Idempotently assign default community role upon activation
+            $roleAssignModel = model(\App\Models\MemberRoleAssignmentModel::class);
+            $roleAssignModel->ensureDefaultRole((int) $membership->user_id, (int) $admin->id);
+
             return redirect()->back()->with('message', 'Keanggotaan berhasil disetujui & diaktifkan! Nomor anggota diterbitkan.');
         }
 

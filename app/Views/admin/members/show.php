@@ -538,6 +538,101 @@
                     </div>
                 <?php endif; ?>
             </div>
+
+            <!-- Role Keanggotaan Komunitas (Phase 6.3 Module B) -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                            <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Role Keanggotaan Komunitas</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Penugasan sebutan peran resmi komunitas.</p>
+                    </div>
+                    <a href="<?= base_url('admin/member-roles') ?>" class="text-[11px] font-bold text-brand-600 hover:underline">
+                        Kelola Role &rarr;
+                    </a>
+                </div>
+
+                <!-- Form Assign Role -->
+                <?php if (! empty($availableRoles)): ?>
+                    <form action="<?= base_url('admin/members/roles/assign/' . $member['user_id']) ?>" method="post" class="space-y-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs">
+                        <?= csrf_field() ?>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Pilih Role Komunitas:</label>
+                            <select name="role_id" required class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-brand-500">
+                                <option value="">-- Pilih Role --</option>
+                                <?php foreach ($availableRoles as $ar): ?>
+                                    <option value="<?= $ar['id'] ?>">
+                                        <?= esc($ar['name']) ?> <?= ! empty($ar['is_default']) ? '(Default)' : '' ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 text-[11px] font-bold text-slate-700 cursor-pointer pt-1">
+                                <input type="checkbox" name="is_primary" value="1" checked class="w-3.5 h-3.5 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Role Utama (Primary)</span>
+                            </label>
+                            <div>
+                                <input type="date" name="expires_at" placeholder="Masa berlaku" title="Opsional: Masa berlaku role" class="w-full px-2 py-1 rounded-xl border border-slate-200 bg-white text-[11px] text-slate-800 focus:outline-none focus:border-brand-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <input type="text" name="internal_note" placeholder="Catatan penugasan (opsional)..." class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-[11px] text-slate-800 focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div class="flex justify-end pt-1">
+                            <button type="submit" class="px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition">
+                                Tugaskan Role
+                            </button>
+                        </div>
+                    </form>
+                <?php endif; ?>
+
+                <!-- List Assigned Roles -->
+                <?php if (empty($userRoles)): ?>
+                    <p class="text-xs text-slate-400 italic text-center py-2">Belum ada role komunitas yang ditugaskan ke anggota ini.</p>
+                <?php else: ?>
+                    <div class="space-y-2 pt-1">
+                        <?php foreach ($userRoles as $ur): ?>
+                            <div class="p-3 rounded-2xl border bg-white border-slate-200 text-xs space-y-1.5 shadow-2xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <?= komeo_render_member_role($ur, 'xs', false) ?>
+                                        <?php if (! empty($ur['is_primary'])): ?>
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-brand-50 text-brand-700 border border-brand-200">
+                                                UTAMA
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-mono">
+                                        <?= date('d/m/Y', strtotime($ur['assigned_at'])) ?>
+                                    </span>
+                                </div>
+
+                                <?php if (! empty($ur['internal_note'])): ?>
+                                    <div class="text-[10px] text-slate-500 italic">
+                                        <?= esc($ur['internal_note']) ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="flex justify-end pt-1 border-t border-slate-100">
+                                    <form action="<?= base_url('admin/members/roles/revoke/' . $ur['assignment_id']) ?>" method="post">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" onclick="return confirm('Cabut role komunitas ini dari anggota?')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition">
+                                            Cabut Role
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
             
             <!-- Verifikasi Identitas & Legalitas Usaha Card (Phase 5 Extension) -->
             <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">

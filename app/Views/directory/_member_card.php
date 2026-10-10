@@ -174,6 +174,29 @@ $logoUrl = $hasLogo ? base_url($item['company_logo_path']) : null;
             </div>
         <?php endif; ?>
 
+        <!-- Custom Member Primary Role (Phase 6.3 - Compact card displays primary role if public) -->
+        <?php
+        $primaryRole = null;
+        if ($isVerified && ! empty($item['user_id'])) {
+            $userRoles = komeo_get_user_roles((int) $item['user_id'], true);
+            foreach ($userRoles as $ur) {
+                if (! empty($ur['is_primary'])) {
+                    $primaryRole = $ur;
+                    break;
+                }
+            }
+            if (! $primaryRole && ! empty($userRoles)) {
+                $primaryRole = $userRoles[0];
+            }
+        }
+        ?>
+        <?php if ($primaryRole): ?>
+            <div class="flex items-center gap-1.5 pt-0.5">
+                <span class="text-[10px] uppercase font-bold text-slate-400">Role:</span>
+                <?= komeo_render_member_role($primaryRole, 'xs', true) ?>
+            </div>
+        <?php endif; ?>
+
         <!-- Custom Member Badges (Phase 5 Extension - Max 3 on compact cards) -->
         <?php 
         $customBadges = [];

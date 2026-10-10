@@ -59,6 +59,13 @@
                                 <?= komeo_render_badge($mb, 'xs', true) ?>
                             <?php endforeach; ?>
                         <?php endif; ?>
+
+                        <!-- Custom Member Roles (Phase 6.3) -->
+                        <?php if (! empty($myRoles)): ?>
+                            <?php foreach ($myRoles as $mr): ?>
+                                <?= komeo_render_member_role($mr, 'xs', true) ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
 
                     <p class="text-xs sm:text-sm text-slate-300 font-medium flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -453,6 +460,230 @@
             </p>
         <?php endif; ?>
     </div>
+
+    <!-- Live Transaksi KOMEO Monitoring Widget (Phase 6.3) -->
+    <?php if ($memStatus === 'active'): ?>
+        <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-6" id="komeo-live-trx-widget">
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-600"></span>
+                        </span>
+                        <h3 class="text-lg font-black tracking-tight text-slate-900">Live Transaksi KOMEO</h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-2xs font-extrabold uppercase tracking-wider bg-brand-50 text-brand-700 ring-1 ring-brand-200">
+                            Monitoring & Transparansi
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span>Aktivitas progres pekerjaan dan monitoring status transaksi komunitas.</span>
+                        <span class="text-slate-400">&bull; Data diperbarui manual oleh administrator KOMEO.</span>
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                    <span class="text-2xs text-slate-400 font-mono" id="trx-sync-indicator">
+                        Sinkronisasi: <span id="trx-last-sync"><?= date('H:i') ?></span> WIB
+                    </span>
+                    <a href="<?= base_url('dashboard/transaksi') ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white transition-colors shadow-xs">
+                        <span>Lihat Semua Direktori</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Grid (6 Metrics) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Transaksi</span>
+                    <span class="text-xl font-black text-slate-900 mt-1 block" id="stat-total"><?= esc($trxStats['total'] ?? 0) ?></span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">Sedang Berjalan</span>
+                    <span class="text-xl font-black text-blue-900 mt-1 block" id="stat-in_progress"><?= esc($trxStats['in_progress'] ?? 0) ?></span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Pekerjaan Selesai</span>
+                    <span class="text-xl font-black text-emerald-900 mt-1 block" id="stat-completed"><?= esc($trxStats['completed'] ?? 0) ?></span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-100">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">Menunggu Bayar</span>
+                    <span class="text-xl font-black text-amber-900 mt-1 block" id="stat-awaiting_payment"><?= esc($trxStats['awaiting_payment'] ?? 0) ?></span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-100">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700 block">DP Diterima</span>
+                    <span class="text-xl font-black text-purple-900 mt-1 block" id="stat-dp_received"><?= esc($trxStats['dp_received'] ?? 0) ?></span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-teal-50/70 border border-teal-100">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">Lunas</span>
+                    <span class="text-xl font-black text-teal-900 mt-1 block" id="stat-paid"><?= esc($trxStats['paid'] ?? 0) ?></span>
+                </div>
+            </div>
+
+            <!-- Recent 5 Transactions Section -->
+            <div class="space-y-3 pt-2">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">5 Transaksi Terbaru Dipublikasikan</h4>
+                    <span class="text-2xs text-slate-400">Pembaruan otomatis berkala</span>
+                </div>
+
+                <div id="recent-trx-container" class="space-y-3">
+                    <?php if (empty($recentTrx)): ?>
+                        <div class="text-center py-10 px-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200">
+                            <svg class="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <p class="text-xs font-semibold text-slate-500">Belum ada transaksi yang dipublikasikan.</p>
+                            <p class="text-2xs text-slate-400 mt-0.5">Administrator akan merilis pembaruan progres transaksi proyek yang sedang berjalan di sini.</p>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($recentTrx as $trx): ?>
+                            <?php
+                                $stage = $trx['current_work_stage'] ?? 'masuk';
+                                $pStatus = $trx['payment_status'] ?? 'unpaid';
+                                $percent = match($stage) {
+                                    'masuk'       => 15,
+                                    'verifikasi'  => 30,
+                                    'negosiasi'   => 50,
+                                    'proses'      => 75,
+                                    'selesai'     => 100,
+                                    'ditunda'     => 40,
+                                    'dibatalkan'  => 0,
+                                    default       => 20,
+                                };
+                                $stageLabels = [
+                                    'masuk'      => ['label' => 'Transaksi Masuk', 'bg' => 'bg-slate-100 text-slate-700'],
+                                    'verifikasi' => ['label' => 'Verifikasi', 'bg' => 'bg-blue-100 text-blue-800'],
+                                    'negosiasi'  => ['label' => 'Negosiasi', 'bg' => 'bg-indigo-100 text-indigo-800'],
+                                    'proses'     => ['label' => 'Dalam Proses', 'bg' => 'bg-purple-100 text-purple-800'],
+                                    'selesai'    => ['label' => 'Selesai', 'bg' => 'bg-emerald-100 text-emerald-800'],
+                                    'ditunda'    => ['label' => 'Ditunda', 'bg' => 'bg-amber-100 text-amber-800'],
+                                    'dibatalkan' => ['label' => 'Dibatalkan', 'bg' => 'bg-rose-100 text-rose-800'],
+                                ];
+                                $paymentLabels = [
+                                    'unpaid'         => ['label' => 'Belum Ada Pembayaran', 'bg' => 'bg-slate-100 text-slate-600'],
+                                    'awaiting_dp'    => ['label' => 'Menunggu DP', 'bg' => 'bg-amber-100 text-amber-800'],
+                                    'dp_received'    => ['label' => 'DP Diterima', 'bg' => 'bg-purple-100 text-purple-800'],
+                                    'partially_paid' => ['label' => 'Pembayaran Sebagian', 'bg' => 'bg-indigo-100 text-indigo-800'],
+                                    'paid'           => ['label' => 'Lunas', 'bg' => 'bg-emerald-100 text-emerald-800'],
+                                    'overdue'        => ['label' => 'Terlambat Bayar', 'bg' => 'bg-rose-100 text-rose-800'],
+                                ];
+                                $sBadge = $stageLabels[$stage] ?? ['label' => ucfirst($stage), 'bg' => 'bg-slate-100 text-slate-700'];
+                                $pBadge = $paymentLabels[$pStatus] ?? ['label' => ucfirst($pStatus), 'bg' => 'bg-slate-100 text-slate-700'];
+                            ?>
+                            <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 hover:border-brand-300 hover:bg-white transition-all space-y-3">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-mono text-2xs font-extrabold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200">
+                                            <?= esc($trx['transaction_code']) ?>
+                                        </span>
+                                        <h5 class="text-sm font-extrabold text-slate-900"><?= esc($trx['public_title'] ?: $trx['title']) ?></h5>
+                                        <span class="text-2xs text-slate-500 font-medium">&bull; <?= esc($trx['category_name'] ?? 'Event') ?></span>
+                                    </div>
+                                    <span class="text-2xs text-slate-400 font-mono">
+                                        <?= date('d M Y', strtotime($trx['transaction_date'])) ?>
+                                    </span>
+                                </div>
+
+                                <!-- Stage progress bar -->
+                                <div>
+                                    <div class="flex items-center justify-between text-2xs font-semibold mb-1">
+                                        <span class="text-slate-600">Progres Alur Kerja: <strong class="text-slate-900"><?= $sBadge['label'] ?></strong></span>
+                                        <span class="text-slate-400"><?= $percent ?>%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-gradient-to-r from-brand-600 to-indigo-600 h-full rounded-full transition-all duration-300" style="width: <?= $percent ?>%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1 text-2xs">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="px-2 py-0.5 rounded-full font-bold <?= $sBadge['bg'] ?>">
+                                            <?= $sBadge['label'] ?>
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded-full font-bold <?= $pBadge['bg'] ?>">
+                                            <?= $pBadge['label'] ?>
+                                        </span>
+                                        <?php if (! empty($trx['contract_issue_member_label'])): ?>
+                                            <span class="px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">
+                                                <?= esc($trx['contract_issue_member_label']) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-slate-400 text-2xs">Update: <?= date('d M Y H:i', strtotime($trx['updated_at'])) ?></span>
+                                        <a href="<?= base_url('dashboard/transaksi/' . $trx['id']) ?>" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-brand-600 hover:border-brand-400 font-bold transition-colors shadow-2xs">
+                                            Lihat Detail &rarr;
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- AJAX Live Polling Script (Phase 6.3) -->
+        <script>
+        (function() {
+            const pollUrl = '<?= base_url('dashboard/transaksi/poll') ?>';
+            const pollIntervalMs = <?= (int) site_setting('Transaction.live_refresh_interval', 60) * 1000 ?>;
+            let isPolling = false;
+
+            async function refreshTransactions() {
+                if (document.hidden || isPolling) return;
+                isPolling = true;
+
+                try {
+                    const response = await fetch(pollUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Status ' + response.status);
+                    const data = await response.json();
+
+                    if (data && data.stats) {
+                        const statMap = {
+                            'stat-total': data.stats.total,
+                            'stat-in_progress': data.stats.in_progress,
+                            'stat-completed': data.stats.completed,
+                            'stat-awaiting_payment': data.stats.awaiting_payment,
+                            'stat-dp_received': data.stats.dp_received,
+                            'stat-paid': data.stats.paid
+                        };
+                        for (const [id, val] of Object.entries(statMap)) {
+                            const el = document.getElementById(id);
+                            if (el && val !== undefined) el.textContent = val;
+                        }
+                    }
+
+                    const syncEl = document.getElementById('trx-last-sync');
+                    if (syncEl) {
+                        const now = new Date();
+                        syncEl.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                    }
+                } catch (err) {
+                    console.debug('[KOMEO Live Trx] Refresh skipped:', err.message);
+                } finally {
+                    isPolling = false;
+                }
+            }
+
+            // Set recurring polling interval
+            setInterval(refreshTransactions, Math.max(15000, pollIntervalMs));
+
+            // Resume polling when tab becomes visible
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) refreshTransactions();
+            });
+        })();
+        </script>
+    <?php endif; ?>
 
     <!-- Grid: Identity Overview & KTA Placeholder -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">

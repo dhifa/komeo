@@ -90,6 +90,11 @@ $routes->group('dashboard', ['filter' => 'session'], static function ($routes) {
     $routes->get('verifikasi-identitas', 'Member\VerificationController::index');
     $routes->post('verifikasi-identitas/submit', 'Member\VerificationController::submit');
     $routes->get('verifikasi-identitas/dokumen/(:segment)', 'Member\VerificationController::previewMyDocument/$1');
+
+    // Phase 6.3: Member Live Transaction Monitoring
+    $routes->get('transaksi', 'Member\TransactionController::index');
+    $routes->get('transaksi/poll', 'Member\TransactionController::poll');
+    $routes->get('transaksi/(:num)', 'Member\TransactionController::show/$1');
 });
 
 // Admin Protected Routes (defense-in-depth: session filter + group filter + controller check)
@@ -217,4 +222,39 @@ $routes->group('admin', ['filter' => ['session', 'group:admin,superadmin,moderat
     $routes->post('blacklist/delete/(:num)', 'Admin\BlacklistController::delete/$1');
     $routes->post('blacklist/category/save', 'Admin\BlacklistController::saveCategory');
     $routes->post('blacklist/category/delete/(:num)', 'Admin\BlacklistController::deleteCategory/$1');
+
+    // Phase 6.3: Custom Member Roles Management
+    $routes->get('member-roles', 'Admin\MemberRoleController::index');
+    $routes->get('member-roles/create', 'Admin\MemberRoleController::create');
+    $routes->post('member-roles/create', 'Admin\MemberRoleController::store');
+    $routes->get('member-roles/(:num)/edit', 'Admin\MemberRoleController::edit/$1');
+    $routes->post('member-roles/(:num)/edit', 'Admin\MemberRoleController::update/$1');
+    $routes->post('member-roles/(:num)/toggle', 'Admin\MemberRoleController::toggle/$1');
+    $routes->post('member-roles/(:num)/default', 'Admin\MemberRoleController::setDefault/$1');
+    $routes->get('member-roles/(:num)/members', 'Admin\MemberRoleController::members/$1');
+    $routes->post('member-roles/bulk-assign', 'Admin\MemberRoleController::bulkAssign');
+
+    // Phase 6.3: Member Detail Role Assignment
+    $routes->post('members/roles/assign/(:num)', 'Admin\MemberController::assignRole/$1');
+    $routes->post('members/roles/revoke/(:num)', 'Admin\MemberController::revokeRole/$1');
+
+    // Phase 6.3: Live Transactions Management
+    $routes->get('transactions', 'Admin\TransactionController::index');
+    $routes->get('transactions/create', 'Admin\TransactionController::create');
+    $routes->post('transactions/create', 'Admin\TransactionController::store');
+    $routes->get('transactions/settings', 'Admin\TransactionController::settings');
+    $routes->post('transactions/settings', 'Admin\TransactionController::updateSettings');
+    $routes->get('transactions/reports', 'Admin\TransactionController::reports');
+    $routes->get('transactions/reports/csv', 'Admin\TransactionController::exportCsv');
+    $routes->get('transactions/(:num)/edit', 'Admin\TransactionController::edit/$1');
+    $routes->post('transactions/(:num)/edit', 'Admin\TransactionController::update/$1');
+    $routes->get('transactions/(:num)/timeline', 'Admin\TransactionController::timeline/$1');
+    $routes->post('transactions/(:num)/timeline', 'Admin\TransactionController::addUpdate/$1');
+    $routes->get('transactions/(:num)/payments', 'Admin\TransactionController::payments/$1');
+    $routes->post('transactions/(:num)/payments', 'Admin\TransactionController::recordPayment/$1');
+    $routes->post('transactions/(:num)/payments/void', 'Admin\TransactionController::voidPayment/$1');
+    $routes->get('transactions/(:num)/issues', 'Admin\TransactionController::issues/$1');
+    $routes->post('transactions/(:num)/issues', 'Admin\TransactionController::saveIssue/$1');
+    $routes->post('transactions/(:num)/toggle-publish', 'Admin\TransactionController::togglePublish/$1');
+    $routes->get('transactions/(:num)/preview', 'Admin\TransactionController::previewMember/$1');
 });

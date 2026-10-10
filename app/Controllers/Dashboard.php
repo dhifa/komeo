@@ -61,6 +61,20 @@ class Dashboard extends BaseController
         $verificationModel = model(\App\Models\MemberVerificationModel::class);
         $verification      = $verificationModel->getByUserId($userId);
 
+        // Phase 6.3: Custom Member Roles
+        $assignmentModel = model(\App\Models\MemberRoleAssignmentModel::class);
+        if ($membership && ($membership->status ?? '') === 'active') {
+            $assignmentModel->ensureDefaultRole($userId);
+        }
+        $myRoles = komeo_get_user_roles($userId, false);
+
+        // Phase 6.3: Live Transactions (published records only for active members)
+        $trxModel        = model(\App\Models\TransactionModel::class);
+        $globalTrxPolicy = site_setting('Transaction.monetary_visibility_policy', 'hide_all');
+        $trxStats        = $trxModel->getStatistics(true);
+        $rawRecentTrx    = $trxModel->getPublishedTransactions([], 5, 0);
+        $recentTrx       = array_map(fn($t) => $trxModel->maskForMember($t, $globalTrxPolicy), $rawRecentTrx);
+
         return view('dashboard/index', [
             'title'             => 'Dashboard Member - KOMEO.ID',
             'user'              => $user,
@@ -74,6 +88,10 @@ class Dashboard extends BaseController
             'myBadges'          => $myBadges,
             'activationRequest' => $activationRequest,
             'verification'      => $verification,
+            'myRoles'           => $myRoles,
+            'trxStats'          => $trxStats,
+            'recentTrx'         => $recentTrx,
+            'globalTrxPolicy'   => $globalTrxPolicy,
         ]);
     }
 }
